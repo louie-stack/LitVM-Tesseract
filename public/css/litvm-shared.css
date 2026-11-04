@@ -1,0 +1,583 @@
+/* Shared overrides used on every page that ships the new nav + footer.
+   Source of truth — do not duplicate in inline <style> blocks. */
+
+:root {
+  --ink-navy: #1a2a40;
+  --ink-teal: #1a616e;
+  --ink-warm: #302326;
+  --ink-deep: #0d1620;
+}
+
+/* Fade-wedge utility (used only on the homepage but harmless elsewhere) */
+.fade-wedge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  width: 100%;
+  pointer-events: none;
+  z-index: 10;
+  --c: var(--ink-navy);
+}
+.fade-wedge.top    { top: 0;    height: 22vh; background: linear-gradient(180deg, var(--c) 0%, rgba(0,0,0,0) 100%); }
+.fade-wedge.bottom { bottom: 0; height: 22vh; background: linear-gradient(180deg, rgba(0,0,0,0) 0%, var(--c) 100%); }
+.fade-wedge.tall   { height: 32vh; }
+.fade-wedge.short  { height: 14vh; }
+.fade-wedge.to-navy { --c: var(--ink-navy); }
+.fade-wedge.to-teal { --c: var(--ink-teal); }
+.fade-wedge.to-warm { --c: var(--ink-warm); }
+.fade-wedge.to-deep { --c: var(--ink-deep); }
+
+/* Homepage-only — first-trustless pin + slide */
+.section_use-cases { height: 400svh; }
+#ecosystem.section_ecosystem { height: 350svh; }
+.case-track .use-case-block,
+.case-track .case-img { will-change: transform, opacity; }
+#ecosystem .ecosystem-sticky { will-change: transform; }
+#ecosystem .ecosystem-sticky.is-slide-pin {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 100 !important;
+}
+
+/* Mobile use-cases: kill the desktop horizontal scrollytelling and stack the
+   cards vertically. The slide-in pin and 400svh tall section don't make sense
+   on mobile — cards overflow the viewport and JS ScrollTrigger fights touch. */
+@media (max-width: 767px) {
+  .section_use-cases { height: auto !important; }
+  .case-track {
+    position: relative !important; top: auto !important;
+    height: auto !important; min-height: 0 !important;
+    transform: none !important;
+    display: block !important;
+  }
+  .case-img { display: none !important; }
+  .case-track .use-case-block {
+    position: relative !important;
+    transform: none !important;
+    opacity: 1 !important;
+    padding-top: 0 !important;
+    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1.5rem !important;
+  }
+  .usecase-title { text-align: center; }
+  .usecases-wrap.desktop { display: none !important; }
+  .usecases-wrap.mobile {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1.25rem !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+  .usecases-wrap.mobile .usecase-card {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+  /* Section_ecosystem slide-in on mobile too — stack instead of pin. */
+  #ecosystem.section_ecosystem { height: auto !important; }
+  #ecosystem .ecosystem-sticky.is-slide-pin {
+    position: relative !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+  /* Ensure the use-case-title and its words actually render, and is in normal
+     flow (Webflow's mobile rule absolutely-positions it at inset 0 0 auto 0
+     which makes it overlap the cards). */
+  .case-track .usecase-title {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+  .case-track .usecase-title * { opacity: 1 !important; visibility: visible !important; }
+}
+
+/* Curtain-lift prep */
+.section_footer .footer-section,
+.section_foot .div-block-38 {
+  will-change: transform, opacity;
+}
+.section_foot { position: relative; z-index: 11; }
+
+/* Tokenomics chart visibility + dimensions */
+.tokenomics .image-11 { opacity: 1 !important; visibility: visible !important; }
+.section-ecosystem .tokenomics { width: 100%; max-width: 36rem; aspect-ratio: 1; }
+@media (max-width: 991px) {
+  .section-ecosystem .tokenomics { max-width: 28rem; margin-left: auto; margin-right: auto; }
+
+  /* Newsletter section: the decorative floating 3D LitVM Lottie cube sits at
+     a fixed vw/vh offset that lands on top of the "Sign Up..." heading and the
+     email signup form on tablet / large-phone widths (768-991px). Because it's
+     position:absolute with z-index:10, it also intercepts taps so the Subscribe
+     button stops working. It's purely ornamental, so hide it across the whole
+     <=991px range (was only hidden <=767px). Desktop (>=992px) keeps it, where
+     it floats clear of the form in the top-right. */
+  .section_footer .lottie-animation { display: none !important; }
+}
+
+/* ===== Site footer ===== */
+.site-footer {
+  position: relative;
+  z-index: 11;
+  padding: 4rem 5% 2.5rem;
+  background: var(--ink-deep);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255,255,255,0.72);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+.site-footer__inner { max-width: 80rem; margin: 0 auto; }
+.site-footer__top {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 2.5rem;
+  padding-bottom: 2.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.site-footer__brand { display: flex; flex-direction: column; align-items: flex-start; gap: 0.75rem; max-width: 28rem; padding: 0; margin: 0; }
+.site-footer__logo { height: 1.75rem; width: auto; display: block; margin: 0; padding: 0; }
+.site-footer__tagline { margin: 0; padding: 0; color: rgba(255,255,255,0.6); font-size: 0.95rem; line-height: 1.5; text-align: left; }
+.site-footer__socials { display: flex; gap: 0.6rem; flex-shrink: 0; }
+.site-footer__social {
+  width: 2.5rem; height: 2.5rem; border-radius: 999px;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: rgba(255,255,255,0.7);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.site-footer__social:hover {
+  color: #fff; background: rgba(100, 191, 211, 0.14);
+  border-color: rgba(100, 191, 211, 0.45); transform: translateY(-2px);
+}
+.site-footer__social svg { width: 1rem; height: 1rem; }
+.site-footer__links {
+  display: flex; flex-wrap: wrap; gap: 2rem;
+  padding: 2rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.site-footer__links a {
+  color: rgba(255,255,255,0.78); text-decoration: none;
+  font-size: 0.95rem; letter-spacing: 0.02em;
+  transition: color 0.2s ease;
+}
+.site-footer__links a:hover { color: #64BFD3; }
+.site-footer__bottom {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 1.5rem; gap: 1.5rem;
+  color: rgba(255,255,255,0.5); font-size: 0.85rem;
+}
+.site-footer__legal { display: flex; gap: 1.5rem; }
+.site-footer__legal a { color: inherit; text-decoration: none; transition: color 0.2s ease; }
+.site-footer__legal a:hover { color: #fff; }
+@media (max-width: 767px) {
+  .site-footer { padding: 3rem 1.5rem 2rem; }
+  .site-footer__top { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+  .site-footer__links { gap: 1rem 1.5rem; }
+  .site-footer__bottom { flex-direction: column; align-items: flex-start; gap: 0.8rem; }
+}
+
+/* ===== Premium navbar: dark glassmorphic, tight spacing, Socials dropdown ===== */
+
+/* Hide the top announcement bar */
+.nav-wrap > section.section { display: none !important; }
+
+/* Glassmorphic dark nav */
+.nav-wrap {
+  background: rgba(8, 14, 23, 0.55);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  backdrop-filter: blur(22px) saturate(160%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+.navbar1_component {
+  background-color: transparent !important;
+  background-image: none !important;
+  border-bottom: 0 !important;
+  min-height: 3.4rem;
+  padding: 0 1.75rem;
+}
+.navbar1_container { gap: 1.25rem; align-items: center; }
+.navbar1_logo { height: 1.35rem; width: auto; }
+
+/* Tighter nav-link spacing (high specificity to beat Webflow's .nav-link.wave 1.25rem) */
+.navbar1_menu-links { display: flex; align-items: center; gap: 0.1rem; }
+.nav-wrap .navbar1_component .navbar1_menu-links .nav-link.wave,
+.nav-wrap .navbar1_component .navbar1_menu-links .nav-link {
+  padding: 0.35rem 0.65rem !important;
+  font-size: 0.92rem !important;
+  font-weight: 400 !important;
+  line-height: 1.2 !important;
+  letter-spacing: 0.015em !important;
+  color: rgba(255, 255, 255, 0.82) !important;
+  transition: color 0.2s ease;
+}
+.nav-wrap .navbar1_component .navbar1_menu-links .nav-link:hover { color: #fff !important; }
+
+/* Dropdown toggle (Learn More + Socials) */
+.navbar1_menu-links .dropdown.w-dropdown {
+  position: relative;
+  padding-right: 0 !important;
+  font-size: 0.92rem !important;
+}
+.nav-wrap .navbar1_component .navbar1_menu-links .dropdown-toggle.w-dropdown-toggle {
+  padding: 0.35rem 0.65rem !important;
+  font-size: 0.92rem !important;
+  font-weight: 400 !important;
+  line-height: 1.2 !important;
+  color: rgba(255, 255, 255, 0.82) !important;
+  cursor: pointer;
+}
+.nav-wrap .navbar1_component .navbar1_menu-links .dropdown-toggle.w-dropdown-toggle .wave {
+  font-size: 0.92rem !important;
+  font-weight: 400 !important;
+  line-height: 1.2 !important;
+  display: inline-block;
+  vertical-align: middle;
+}
+.navbar1_menu-links .dropdown-toggle .icon.w-icon-dropdown-toggle { display: none !important; }
+.navbar1_menu-links .dropdown-toggle.w-dropdown-toggle::after {
+  content: "";
+  display: inline-block;
+  width: 0.42rem;
+  height: 0.42rem;
+  margin-left: 0.4rem;
+  border-right: 1.5px solid rgba(255, 255, 255, 0.55);
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.55);
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+  vertical-align: middle;
+}
+.navbar1_menu-links .dropdown.w-dropdown:hover .dropdown-toggle.w-dropdown-toggle::after,
+.navbar1_menu-links .dropdown-toggle.w-dropdown-toggle.w--open::after {
+  transform: translateY(0) rotate(225deg);
+  border-color: #fff;
+}
+.navbar1_menu-links .dropdown.w-dropdown:hover .dropdown-toggle.w-dropdown-toggle,
+.navbar1_menu-links .dropdown-toggle.w-dropdown-toggle:hover { color: #fff !important; }
+
+/* Dropdown list — sits FLUSH against the toggle so there is no dead zone for
+   the cursor to cross. CSS :hover on the parent keeps the menu open while
+   the cursor is anywhere on the toggle OR the menu items. */
+.navbar1_menu-links .dropdown-list.w-dropdown-list {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: auto;
+  margin-top: 0;
+  background: rgba(8, 14, 23, 0.92);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  backdrop-filter: blur(22px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.8rem;
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.45);
+  padding: 0.4rem;
+  min-width: 12rem;
+  z-index: 1000;
+  display: none !important;
+}
+.navbar1_menu-links .dropdown-list.w-dropdown-list.w--open,
+.nav-wrap .navbar1_menu-links .dropdown.w-dropdown:hover .dropdown-list.w-dropdown-list,
+.nav-wrap .navbar1_menu-links .dropdown.w-dropdown:focus-within .dropdown-list.w-dropdown-list {
+  display: flex !important;
+  flex-direction: column !important;
+}
+.dropdown-list .nav-link.submenu {
+  padding: 0.55rem 0.8rem;
+  border-radius: 0.5rem;
+  font-size: 0.92rem;
+  color: rgba(255, 255, 255, 0.85);
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.dropdown-list .nav-link.submenu:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+/* Socials dropdown items: icon + label */
+.dropdown-list .socials-item svg {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.7);
+  transition: color 0.15s ease;
+}
+.dropdown-list .socials-item:hover svg { color: #64BFD3; }
+
+/* Hide the inline mobile socials block (we use the dropdown instead) on desktop */
+.navbar1_menu-links > .socials.tablet { display: none !important; }
+
+/* Hide empty Webflow CTA placeholders */
+.navbar1_menu-buttons { display: none !important; }
+
+@media (max-width: 991px) {
+  .navbar1_component { padding: 0 1rem; }
+  /* Socials are surfaced through the "Socials" dropdown (like desktop), not the
+     inline icon row, so the menu stays neatly packaged. */
+  .navbar1_menu-links > .socials.tablet { display: none !important; }
+
+  /* When the mobile menu is open the translucent, blurred nav bar shows the
+     colorful hero through it as a rainbow smear. Make the bar solid and match
+     the teal menu panel (#1a5463) so the bar + panel read as one surface. */
+  .nav-wrap:has(.w-nav-button.w--open) {
+    background: #1a5463 !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    border-bottom-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  /* Dropdowns expand INLINE (accordion) inside the mobile menu instead of
+     floating as an absolutely-positioned card that overlaps the items below
+     it (which made "Learn More" collide with "Socials"). */
+  .navbar1_menu-links .dropdown.w-dropdown { width: 100%; text-align: center; }
+  .nav-wrap .navbar1_component .navbar1_menu-links .dropdown-toggle.w-dropdown-toggle {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
+  .navbar1_menu-links .dropdown-list.w-dropdown-list {
+    position: static !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin-top: 0.25rem !important;
+    padding: 0.25rem 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    align-items: center !important;
+  }
+  .navbar1_menu-links .dropdown-list .nav-link.submenu { justify-content: center; }
+
+  /* Show the "Socials" dropdown in the mobile menu (it expands inline like
+     "Learn More" via the rules above) so socials are packaged in a dropdown
+     rather than a loose icon row at the bottom. */
+
+  /* ===== Mobile menu polish ===== */
+  /* Balance the stack vertically so it sits centred in the panel instead of
+     clustering at the top with a large empty void underneath. */
+  .nav-wrap .navbar1_component .navbar1_menu-links {
+    min-height: calc(100dvh - 8.5rem);
+    justify-content: center !important;
+    align-items: stretch !important;
+    gap: 0.3rem !important;
+    width: 100%;
+  }
+  /* Larger, full-width, comfortably tappable rows with a soft press state. */
+  .nav-wrap .navbar1_component .navbar1_menu-links > .nav-link.wave,
+  .nav-wrap .navbar1_component .navbar1_menu-links > .nav-link {
+    width: 100% !important;
+    text-align: center !important;
+    font-size: 1.4rem !important;
+    line-height: 1.15 !important;
+    padding: 0.8rem 1rem !important;
+    border-radius: 12px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  .nav-wrap .navbar1_component .navbar1_menu-links > .nav-link:active {
+    background: rgba(255, 255, 255, 0.08);
+  }
+  /* Dropdown toggles ("Learn More" / "Socials") match the primary link scale. */
+  .nav-wrap .navbar1_component .navbar1_menu-links .dropdown.w-dropdown { margin: 0 !important; }
+  .nav-wrap .navbar1_component .navbar1_menu-links .dropdown-toggle.w-dropdown-toggle {
+    padding: 0.8rem 1rem !important;
+  }
+  .nav-wrap .navbar1_component .navbar1_menu-links .dropdown-toggle.w-dropdown-toggle .wave {
+    font-size: 1.4rem !important;
+  }
+  /* Submenu items read as a tidy nested group on a faint inset panel, smaller
+     and muted so the hierarchy is obvious. */
+  .navbar1_menu-links .dropdown-list.w-dropdown-list.w--open {
+    background: rgba(0, 0, 0, 0.14) !important;
+    border-radius: 14px !important;
+    margin: 0.35rem 1.25rem 0.15rem !important;
+    padding: 0.4rem 0 !important;
+    width: auto !important;
+  }
+  .navbar1_menu-links .dropdown-list .nav-link.submenu {
+    font-size: 1.05rem !important;
+    padding: 0.6rem 1rem !important;
+    color: rgba(255, 255, 255, 0.78) !important;
+  }
+  /* Each item rises + fades in, staggered, every time the menu opens. */
+  .nav-wrap .navbar1_component .navbar1_menu-links > * {
+    animation: navItemIn 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  .navbar1_menu-links > *:nth-child(1) { animation-delay: 0.04s; }
+  .navbar1_menu-links > *:nth-child(2) { animation-delay: 0.09s; }
+  .navbar1_menu-links > *:nth-child(3) { animation-delay: 0.14s; }
+  .navbar1_menu-links > *:nth-child(4) { animation-delay: 0.19s; }
+  .navbar1_menu-links > *:nth-child(5) { animation-delay: 0.24s; }
+  .navbar1_menu-links > *:nth-child(6) { animation-delay: 0.29s; }
+  .navbar1_menu-links > *:nth-child(7) { animation-delay: 0.34s; }
+}
+
+@keyframes navItemIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (max-width: 767px) {
+  .fade-wedge.top, .fade-wedge.bottom { height: 16vh; }
+  .fade-wedge.tall { height: 22vh; }
+}
+
+/* ===== Mobile: linearize the pinned hero / potential / mission stack =====
+   On desktop #mission-sec (.hero-about-mission) is a 500vh sticky viewport
+   that cross-fades hero -> potential -> mission via a scrubbed GSAP timeline
+   (now disabled on mobile in index.html). That pinned model breaks on a phone:
+   the "Unleashing Litecoin's Potential" copy clips, and the 5 mission cards
+   render as a horizontal row ~1664px wide that overflows the screen. Flatten
+   the whole block so each section is a normal stacked panel and the mission
+   cards stack vertically. */
+@media (max-width: 767px) {
+  .hero-about-mission { height: auto !important; }
+  .sticky-hero-potential {
+    position: relative !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  /* The scroll-driven image-sequence canvas is position:fixed and a small-phone
+     rule (<=479px) re-shows it, so it paints the hero render over everything as
+     you scroll. It's a desktop device — the static .image-14 already supplies the
+     hero background on mobile — so hide it and let the linearized content show. */
+  .bg-image, #image-sequence-canvas { display: none !important; }
+  /* #mission.sticky-tablet is still sticky/100svh at <=991px; let it grow so the
+     stacked mission cards aren't clipped by a one-screen-tall parent. */
+  .sticky-tablet {
+    position: relative !important;
+    height: auto !important;
+    min-height: 0 !important;
+    top: auto !important;
+  }
+  /* Each layered section becomes a normal full-width block, in document order */
+  .section_hero,
+  .section_potential,
+  .section_mission {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    opacity: 1 !important;
+    transform: none !important;
+    z-index: auto !important;
+  }
+  .section_hero,
+  .section_potential { min-height: 100svh; }
+  /* The scrubbed timeline used to fade the copy in; force it visible on mobile
+     so nothing is left stuck at opacity:0 / visibility:hidden. */
+  [data-prevent-flicker='true'] { visibility: visible !important; }
+  .potential-block,
+  .potential-block * { opacity: 1 !important; }
+  /* Potential copy was bottom-aligned (align-items:flex-end) and clipped on a
+     short screen — center it with breathing room instead. */
+  .section_potential {
+    align-items: center !important;
+    padding-top: 4rem !important;
+    padding-bottom: 4rem !important;
+  }
+  /* Mission: stack the five cards vertically instead of a horizontal row. */
+  .section_mission {
+    overflow: visible !important;
+    padding-top: 4rem !important;
+    padding-bottom: 4rem !important;
+  }
+  .mission-grid {
+    display: flex !important;
+    flex-flow: column !important;
+    grid-template: none !important;
+    width: 100% !important;
+    grid-column-gap: 1rem !important;
+    grid-row-gap: 1rem !important;
+    gap: 1rem !important;
+  }
+  .mission-card {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 13rem;
+    aspect-ratio: 16 / 10 !important;
+  }
+  /* Kill the Webflow "swipe the whole card row off to the right" interaction on
+     the grid container. On mobile the cards stack and reveal vertically instead
+     of sliding off into empty space, then the page scrolls on to Build.Prove. */
+  .mission-grid { transform: none !important; }
+  .mission-block { opacity: 1 !important; visibility: visible !important; }
+
+  /* ===== Mobile reveal utility =====
+     Content rises + fades in once as it scrolls into view and ALWAYS completes
+     (JS adds .m-in when the block enters; a failsafe forces it). Used for the
+     card sections (mission, use-cases) so they animate in without the desktop
+     horizontal-scroll mechanics. */
+  .m-reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity .7s cubic-bezier(.2, .7, .2, 1),
+                transform .7s cubic-bezier(.2, .7, .2, 1);
+  }
+  .m-reveal.m-in {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ===== Mobile: fit the Build.Prove.Bridge. pyramid diagram =====
+   The diagram is three 15rem triangle images forming a ~468px-wide base with
+   labels that translate outward ("Shared Sequencing and Composability" pushed
+   off the right edge). Scale the whole diagram down uniformly so the geometry
+   stays intact, and clip the section so the oversized layout box can't create
+   page-wide horizontal scroll. */
+@media (max-width: 767px) {
+  .section_infrastructure { overflow-x: clip; }
+  /* The pyramid pins and assembles as you scroll (scrubbed scrollytelling, on
+     for mobile). Scale it up so it fills the phone viewport during the scrub
+     instead of floating tiny in the middle. */
+  .triangles {
+    transform: scale(0.95);
+    transform-origin: center center;
+  }
+  /* Webflow's mobile rule forces .label-text to white-space:nowrap, so the long
+     right-hand label "Shared Sequencing and Composability" runs as one line
+     across the pyramid image. Let labels wrap like desktop and cap the long one
+     so it stacks onto two lines sitting on its connector line, outside the
+     pyramid. (Short labels stay on one line.) */
+  .triangle-label.right .label-text {
+    white-space: normal !important;
+    max-width: 7.5rem;
+  }
+
+  /* Asset Focus: the scroll-driven ecosystem diagram sat in a tall (20rem)
+     canvas with empty space below it, leaving a big gap above the
+     "Litecoin-Native Asset Focus" heading so the diagram read as detached.
+     Tighten the canvas height and the stack gap so it connects to the heading. */
+  .section-assets .focus-canvas { height: 15rem !important; min-height: 0 !important; }
+  .section-assets .assets-block {
+    grid-row-gap: 0.75rem !important;
+    gap: 0.75rem !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

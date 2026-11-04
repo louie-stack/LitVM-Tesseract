@@ -1,0 +1,10 @@
+node_modules/
+work/s/
+work/f/
+work/fm/
+work/*.jpg
+work/portal*
+work/sky*
+work/patch*.py
+work/mem.py
+__pycache__/
