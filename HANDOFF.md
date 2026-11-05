@@ -4,14 +4,15 @@ START HERE in a new session. Last worked on 2026-11-05.
 
 Standalone review page for the LitVM team, in LitVM's brand, with Lunar Digital Assets. NOT part of the site repo (`~/Desktop/litvm-site`) and never pushed. This folder is a local git repo with no remote: do not push or deploy unless Louie asks. Earlier simple version kept at `~/Desktop/litvm-tesseract` (frozen fallback, port 4177).
 
-## Where it stands (2026-11-05)
-Louie looked at the 2026-11-05 round and said "this looks good", then paused. All work is committed locally. Nothing is waiting on a decision from Claude: the next move is whichever of these he brings:
-1. The **fifth Cohort 1 logo and name** (steps under Still open).
-2. His **final art** (steps under Swapping art).
-3. A **single shareable file** for the team, when he asks for it.
-4. More design feedback. He reviews in the browser and answers in short notes; act on exactly what he names.
+## Where it stands (2026-11-05, evening)
+All work is committed locally. Louie asked to save and hand off after the Cohort 2 spacing change. Nothing has been built for sharing yet. Next moves, whichever he brings:
+1. **Answers still owed** (he has not replied): Jack's surname; approval of his own bio and "Graphic designer" row; whether "Seasoned Web3 operators..." stays (Claude's view: keep it now Roc and Aztec are back as advisors).
+2. **Argent's real logo**, replacing the placeholder (steps under Still open).
+3. His **final art** (steps under Swapping art).
+4. A **single shareable file** for the team, when he asks for it. Jack's surname and the sign-offs below should be settled first.
+5. More design feedback. He reviews in the browser and answers in short notes; act on exactly what he names.
 
-Done in the 2026-11-05 round: four Cohort 1 logos sealed in the crystals; hero object lowered with the beam stopping at its centre; Four Dimensions rebuilt as one panel with a hexagonal opening; logo removed from the Cohort 2 coin; Cohort 2 box moved up from the footer.
+Done on 2026-11-05: four Cohort 1 logos sealed in the crystals; hero object lowered with the beam stopping at its centre; Four Dimensions rebuilt as one panel with a hexagonal opening; logo removed from the Cohort 2 coin; Cohort 2 box moved up from the footer. Then, in the following session: Argent as the fifth project with a placeholder mark; new team (Louie, Richard, Robbie) and a small Advisors row (Roc, Aztec, Jack); less space above the Cohort 2 box.
 
 ## Run it
 ```
@@ -28,8 +29,8 @@ CSS in `public/css/tesseract.css` needs no build, just a refresh. Page HTML: edi
 3. **Our Mission**: 300vh pin on plain gradient. Cube makes one full scrubbed 4D turn while words light up.
 4. **Four Dimensions of Support**: on desktop the four cards fly out of the cube and lock into one panel with a hexagonal opening at its centre (geometry computed in `layout()`, drawn with `roundPoly`/`insetPoly`), the cube turning inside and lighting the art nearest it. Phones keep one plain rounded card at a time. Each card lights one family of 8 parallel edges (four pillars = four dimensions). Art stays vivid and melts into pre-blurred glass behind the words (`work/blurcards.py`; rerun it when the card art changes); a point of light travels each card edge. Hover tilts the card, isolates its edges on the cube, dims the others.
 5. **The Track**: the real cube turns with the tunnel visible inside its silhouette (mask drawn from its own faces), you fly into it. Minimal tunnel: dark faces, rails, light-bar gates. 14 stops at even scroll pace, one central readout, stage progress line.
-6. **Cohort 1 line-up**: far end of the tunnel opens on a dark vault. Five glass cubes rotating in sync, spotlights, fading floor reflections. Each project's logo is a thick solid (stacked slices) hanging inside its crystal: it condenses out of depth on arrival, sways, turns once on hover, gives off its own colour, and appears in the floor reflection. The fifth crystal stays empty until its logo arrives.
-7. **Brought to you by**: title, two-line subtext, three people cards, "In collaboration with" + LDA logo under them, on the gradient.
+6. **Cohort 1 line-up**: far end of the tunnel opens on a dark vault. Five glass cubes rotating in sync, spotlights, fading floor reflections. Each project's logo is a thick solid (stacked slices) hanging inside its crystal: it condenses out of depth on arrival, sways, turns once on hover, gives off its own colour, and appears in the floor reflection. The fifth crystal holds Argent's placeholder mark.
+7. **Brought to you by**: title, two-line subtext, three people cards, an Advisors row of three small boxes (see Team cards), "In collaboration with" + LDA logo under them, on the gradient.
 8. **Cohort 2**: central card, applications not open, disabled button, follow link, under the Litecoin coin painting, with nothing placed on the art.
 Then the live site's footer.
 
@@ -46,9 +47,9 @@ Then the live site's footer.
 
 ## Still open
 - **Final art from Louie**: hero and ending paintings and the four card images are the site's, as placeholders. New card art loses its inner corner to the hexagon, so the subject should sit towards the outer corner (the Advisory coin currently sits right against the cut).
-- **Fifth Cohort 1 project**: logo and name still to come. Save a transparent square PNG as `public/assets/logos/<name>.png` (see `work/logos.py`), then replace the last `COHORT` entry in `src/main.js` with `{ name, logo, glow, size }` (glow = its main colour, size = optical size, around 0.75 to 1.1). `npm run build`.
+- **Fifth Cohort 1 project is Argent, the native DEX on LitVM (Louie, 2026-11-05).** They have no logo yet, so the mark in the crystal is a PLACEHOLDER Claude drew: `work/argent_logo.py`, an A in two silvers (argent = silver), its legs offset like the two sides of a trade. When the real logo arrives, save a transparent square PNG over `public/assets/logos/argent.png`, then set `glow` (its main colour) and `size` (optical size, around 0.75 to 1.1) on the last `COHORT` entry in `src/main.js`. `npm run build`.
 - **Logo liberties to confirm** (told Louie, no answer yet): Lithium Lend's black L is off-white here because black vanishes in the dark vault. Lester Labs is cut out of its square avatar and fades out at the chest. Names come from the logo file names.
-- **Copy sign-off from the team.** Lines written for this page, not from the deck: hero subline, "Five projects enter the first track in December", the Account Executive line under Four Dimensions, the Cohort 2 text.
+- **Copy sign-off from the team.** Lines written for this page, not from the deck: Louie's and Robbie's bios and rows, hero subline, "Five projects enter the first track in December", the Account Executive line under Four Dimensions, the Cohort 2 text.
 - **Deck is marked Proprietary & confidential**: track stops and leadership details need clearing before public.
 - **Removed with the Network**: the deck's 12 partner types and the four-step process are no longer on the page. Offered a row of tags under the team if wanted.
 - **Sharing**: Louie's habit is one self-contained file on the Desktop for the team. Not built yet; needs fonts, art and JS inlined (textures must become data URLs or WebGL loading breaks from file://).
@@ -57,7 +58,9 @@ Then the live site's footer.
 ## Not verified
 Real phone (only emulated phones so far), mobile menu on this build, Louie's Nvidia GPU (QA ran on the AMD chip). Scroll feel is judged from frames: Louie is the judge of motion.
 
-Checked on 2026-11-05: logos, hero beam, Four Dimensions and hover by eye on desktop and an emulated phone; reduced motion for those three (hover aside); card text fit at 1920, 1440, 1366, 1280 and 390; no black frames leaving the hero at 1440, 1920 and phone (before the Four Dimensions rebuild on phone and 1920; 1440 was rechecked after it). `measure.js` last ran before the hexagon panel, so rerun it and expect its Four Dimensions readings to need updating. A full-page contact sheet has not been rerun since these changes.
+Team, Advisors, Argent and Cohort 2 spacing were checked by eye on desktop and an emulated phone; the Argent mark's final weight only on desktop. `work/scrollblack.js` was not rerun because nothing in the hero or composite changed. A real-browser run of the whole page has not been done since these edits.
+
+Checked earlier on 2026-11-05: logos, hero beam, Four Dimensions and hover by eye on desktop and an emulated phone; reduced motion for those three (hover aside); card text fit at 1920, 1440, 1366, 1280 and 390; no black frames leaving the hero at 1440, 1920 and phone (before the Four Dimensions rebuild on phone and 1920; 1440 was rechecked after it). `measure.js` last ran before the hexagon panel, so rerun it and expect its Four Dimensions readings to need updating. A full-page contact sheet has not been rerun since these changes.
 
 Frame rate on the AMD chip at 1440 with a 2x screen: about 45 to 50fps in Four Dimensions, same as Our Mission. Wheel scrolling averaged 45fps over the first 57% of the section, worst single frame 230ms, so a small hitch as a card arrives is possible. Jumping straight into the section reads about 4fps for the first couple of seconds, then recovers.
 
@@ -87,5 +90,19 @@ Frame rate on the AMD chip at 1440 with a 2x screen: about 45 to 50fps in Four D
 - `node work/scrub.js work/f 1280 720 48 [mobile]` then `python work/contact.py work/f 8 320 180 work/contact.jpg` whole-page contact sheet. Create the output folder first.
 - `node work/measure.js` edges, centres, equal cards. `node work/fit.js` card text fit, stop pacing. `work/check5.js` is out of date: it still looks for the removed strip.
 - `node work/dimqa.js`, `node work/dimfps.js`, `node work/dimscroll.js` Four Dimensions frames, frame cost, and frame times during real wheel scrolling. `node work/scrollblack.js` + `python work/scrollblack.py` catch black frames leaving the hero.
+- `node work/argentqa.js` fifth crystal close-up and hover. `node work/teamlines.js` bio line counts. `node work/applyscroll.js work/s <w> <h>` team-to-Cohort 2 spacing and frames. `work/advgap.js` is a one-off spacing probe, safe to delete.
 - `node work/logoqa.js`, `node work/heroqa.js` crystal logos and hero beam: zooms, arrival, hover, load, phone, reduced motion; output in `work/s`.
 Headless software rendering is unreliable with postprocessing, so these run headed. Screenshot and frame folders in `work/` are git-ignored and safe to delete.
+
+## Team cards (changed 2026-11-05)
+Order, at Louie's request: Louie Henry H. (Project Lead, Tesseract), Richard Stangland, Robbie Coleman (Head of APAC, Litecoin Foundation). Roc Zacharias and Aztec Amaya are off the page.
+- Louie goes by "Louie Henry H." on this page, by his choice. Never put his full surname on it, even though his resume has it.
+- `people/louie.jpg` comes from `~/Desktop/louie pfp.png`, with the plain backdrop extended so his head matches the others in the circle.
+- Louie's bio and rows were drafted by Claude from his resume, for his sign-off.
+- Robbie's title is Louie's. His bio and the "Litecoin: 7+ years" row were written by Claude from a Crypto Times podcast page and need sign-off. The Litecoin Foundation's own team page was reported as listing him as Creative Director, so confirm the title. Source photo: `~/Desktop/robbie coleman pfp.jpg`.
+- Advisors (small boxes under the cards, Louie's request), name and title only: Roc Zacharias (CEO, Lunar Digital Assets), Aztec Amaya (Co-founder, LitVM), Jack (CLO, Lunar Digital Assets). Jack's surname is still to come. `people/jack.jpg` is cut out of `~/Desktop/Jack pfp.jpg` (two other people removed) and placed on the blue backdrop of Roc's and Aztec's portraits.
+- **Name clash to flag**: from memory, unverified, there is an existing crypto wallet called Argent on Ethereum and Starknet. Told Louie; the team may want to check before announcing.
+- `node work/teamlines.js` counts bio lines per card at each width. They should match.
+
+## Cohort 2 spacing (changed 2026-11-05)
+Louie asked for less dead space above the Cohort 2 box. `#apply` is now 7rem shorter than the screen. Do not shorten it further without fading that line out (offered as the way to go tighter, no answer yet): when the box is in its resting position, the "In collaboration with" line must have cleared the top of the screen, or it peeks in, clipped, over the coin. Check with `node work/applyscroll.js work/s <w> <h>`, frame `ap-<w>-2.jpg`.

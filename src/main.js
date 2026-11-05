@@ -19,7 +19,7 @@ const COHORT = [
   { name: 'Omega', logo: 'omega', glow: '#fff1d6', size: 0.88 },
   { name: 'Midas Hand', logo: 'midas', glow: '#ff9a3d', size: 1.1 },
   { name: 'Lithium Lend', logo: 'lithium', glow: '#4f8cff', size: 0.76 },
-  { name: 'Fifth project', note: 'To be announced' },
+  { name: 'Argent', logo: 'argent', glow: '#dce6f5', size: 0.96 }, // placeholder mark until theirs exists: work/argent_logo.py
 ];
 const STAGES = ['Awareness', 'Integration', 'Consideration', 'Conversion', 'Nurture'];
 const STOPS = [['New Cohort', 0], ['Intake', 0], ['Account Exec', 1], ['First Call', 1], ['Identify Goals', 1], ['Roadmap', 1], ['Intro Tesseract Network', 1], ['Audits', 2], ['Pitching', 2], ['Prompt Classes', 2], ['Second Call', 3], ['Amplification', 3], ['Campaign', 3], ['Transported', 4]];
