@@ -6,10 +6,10 @@ Standalone review page for the LitVM team, in LitVM's brand, with Lunar Digital 
 
 ## Where it stands (2026-11-05, evening)
 All work is committed and pushed to `main`. Louie asked to save and hand off after the Cohort 2 spacing change. Nothing has been built for sharing yet. Next moves, whichever he brings:
-1. **Answers still owed** (he has not replied): Jack's surname; approval of his own bio and "Graphic designer" row; whether "Seasoned Web3 operators..." stays (Claude's view: keep it now Roc and Aztec are back as advisors).
+1. **Answers still owed** (he has not replied): approval of his own bio and "Graphic designer" row; whether "Seasoned Web3 operators..." stays (Claude's view: keep it now Roc and Aztec are back as advisors).
 2. **Argent's real logo**, replacing the placeholder (steps under Still open).
 3. His **final art** (steps under Swapping art).
-4. A **single shareable file** for the team, when he asks for it. Jack's surname and the sign-offs below should be settled first.
+4. A **single shareable file** for the team, when he asks for it. The sign-offs below should be settled first.
 5. More design feedback. He reviews in the browser and answers in short notes; act on exactly what he names.
 
 Done on 2026-11-05: four Cohort 1 logos sealed in the crystals; hero object lowered with the beam stopping at its centre; Four Dimensions rebuilt as one panel with a hexagonal opening; logo removed from the Cohort 2 coin; Cohort 2 box moved up from the footer. Then, in the following session: Argent as the fifth project with a placeholder mark; new team (Louie, Richard, Robbie) and a small Advisors row (Roc, Aztec, Jack); less space above the Cohort 2 box.
@@ -100,7 +100,7 @@ Order, at Louie's request: Louie Henry H. (Project Lead, Tesseract), Richard Sta
 - `people/louie.jpg` comes from `~/Desktop/louie pfp.png`, with the plain backdrop extended so his head matches the others in the circle.
 - Louie's bio and rows were drafted by Claude from his resume, for his sign-off.
 - Robbie's title is Louie's. His bio and the "Litecoin: 7+ years" row were written by Claude from a Crypto Times podcast page and need sign-off. The Litecoin Foundation's own team page was reported as listing him as Creative Director, so confirm the title. Source photo: `~/Desktop/robbie coleman pfp.jpg`.
-- Advisors (small boxes under the cards, Louie's request), name and title only: Roc Zacharias (CEO, Lunar Digital Assets), Aztec Amaya (Co-founder, LitVM), Jack (CLO, Lunar Digital Assets). Jack's surname is still to come. `people/jack.jpg` is cut out of `~/Desktop/Jack pfp.jpg` (two other people removed) and placed on the blue backdrop of Roc's and Aztec's portraits.
+- Advisors (small boxes under the cards, Louie's request), name and title only: Roc Zacharias (CEO, Lunar Digital Assets), Aztec Amaya (Co-founder, LitVM), Jack Hartley (CLO, Lunar Digital Assets). `people/jack.jpg` is cut out of `~/Desktop/Jack pfp.jpg` (two other people removed) and placed on the blue backdrop of Roc's and Aztec's portraits.
 - **Name clash to flag**: from memory, unverified, there is an existing crypto wallet called Argent on Ethereum and Starknet. Told Louie; the team may want to check before announcing.
 - `node work/teamlines.js` counts bio lines per card at each width. They should match.
 
