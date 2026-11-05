@@ -2,10 +2,10 @@
 
 START HERE in a new session. Last worked on 2026-11-05.
 
-Standalone review page for the LitVM team, in LitVM's brand, with Lunar Digital Assets. NOT part of the site repo (`~/Desktop/litvm-site`) and never pushed. This folder is a local git repo with no remote: do not push or deploy unless Louie asks. Earlier simple version kept at `~/Desktop/litvm-tesseract` (frozen fallback, port 4177).
+Standalone review page for the LitVM team, in LitVM's brand, with Lunar Digital Assets. NOT part of the site repo (`~/Desktop/litvm-site`) and never pushed. Repo: github.com/louie-stack/LitVM-Tesseract, branch `main`. It is PUBLIC, at Louie's explicit choice (2026-11-05), knowing the page holds deck content marked confidential and unapproved copy. Only push when he asks; nothing is deployed. Earlier simple version kept at `~/Desktop/litvm-tesseract` (frozen fallback, port 4177).
 
 ## Where it stands (2026-11-05, evening)
-All work is committed locally. Louie asked to save and hand off after the Cohort 2 spacing change. Nothing has been built for sharing yet. Next moves, whichever he brings:
+All work is committed and pushed to `main`. Louie asked to save and hand off after the Cohort 2 spacing change. Nothing has been built for sharing yet. Next moves, whichever he brings:
 1. **Answers still owed** (he has not replied): Jack's surname; approval of his own bio and "Graphic designer" row; whether "Seasoned Web3 operators..." stays (Claude's view: keep it now Roc and Aztec are back as advisors).
 2. **Argent's real logo**, replacing the placeholder (steps under Still open).
 3. His **final art** (steps under Swapping art).
