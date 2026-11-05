@@ -8,3 +8,4 @@ work/sky*
 work/patch*.py
 work/mem.py
 __pycache__/
+work/logos/

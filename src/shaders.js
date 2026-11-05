@@ -348,3 +348,59 @@ void main(){
   col+=(fract(sin(dot(gl_FragCoord.xy+uTime,vec2(12.9898,78.233)))*43758.5453)-.5)/255.;
   gl_FragColor=vec4(col,1.);
 }`;
+
+/* ---------- the project marks sealed inside the Cohort 1 crystals ---------- */
+export const LOGO_VERT = /* glsl */`
+attribute float aLayer; uniform float uThick,uFlip,uSpread;
+varying vec2 vUv; varying float vL,vA; varying vec3 vN;
+void main(){
+  vUv=uv; float l=uFlip>.5?1.-aLayer:aLayer; vL=l; vA=aLayer;
+  vec3 p=position; p.z=(l-.5)*(uThick+uSpread*1.1); p.xy*=1.+(l-.5)*uSpread*.5;
+  vN=normalize(mat3(modelViewMatrix)*vec3(0.,0.,1.));
+  gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);
+}`;
+export const LOGO_FRAG = /* glsl */`
+precision highp float;
+uniform sampler2D tLogo; uniform float uTime,uAlpha,uTurn,uHot,uFadeY,uFaceOnly; uniform vec3 uGlow; uniform vec2 uRes;
+varying vec2 vUv; varying float vL,vA; varying vec3 vN;
+void main(){
+  if(uFaceOnly>.5&&vA<.99) discard;
+  vec4 t=texture2D(tLogo,vUv);
+  if(t.a<.004) discard;
+  // the two faces carry the real colours; the body between them is lit by the mark's own colour
+  float face=smoothstep(.93,1.,abs(vL*2.-1.));
+  float nv=abs(vN.z);
+  vec3 body=(uGlow*.42+t.rgb*.12)*t.a;
+  // a slow band of light crosses the face as it turns
+  float sweep=exp(-pow((vUv.x+vUv.y*.35-.68-sin(uTurn*1.7+uTime*.22)*.75)*5.,2.));
+  vec3 col=t.rgb*(1.+sweep*.55*nv+uHot*.06);
+  col=mix(body,col,face);
+  float a=uAlpha*mix(smoothstep(.6,.96,t.a),1.,face);
+  if(uFadeY>0.) a*=smoothstep(uFadeY-.3,uFadeY,gl_FragCoord.y/uRes.y)*.9;
+  gl_FragColor=vec4(col,t.a)*a;
+}`;
+export const HALO_VERT = /* glsl */`
+varying vec2 vUv;
+void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }`;
+export const HALO_FRAG = /* glsl */`
+precision highp float;
+uniform vec3 uGlow; uniform float uHot,uAlpha,uFadeY; uniform vec2 uRes; varying vec2 vUv;
+void main(){
+  float d=length(vUv-.5)*2.;
+  float a=uAlpha*pow(max(0.,1.-d),2.2)*(.2+uHot*.08);
+  if(uFadeY>0.) a*=smoothstep(uFadeY-.3,uFadeY,gl_FragCoord.y/uRes.y);
+  gl_FragColor=vec4(uGlow*a,0.);
+}`;
+
+/* the hot point at the object's centre: drawn over the rods so nothing ever crosses it */
+export const NODE_FRAG = /* glsl */`
+precision highp float;
+uniform float uAlpha,uTime; varying vec2 vUv;
+void main(){
+  vec2 p=(vUv-.5)*2.; float r=length(p),b=.94+.06*sin(uTime*1.15);
+  float e=max(0.,1.-r); e*=e;
+  float hot=exp(-r*r*420.)*1.9+exp(-r*r*60.)*.3+exp(-r*r*9.)*.05;
+  float streak=exp(-p.y*p.y*5200.)*exp(-p.x*p.x*8.)*.42+exp(-p.x*p.x*5200.)*exp(-p.y*p.y*20.)*.16; // a soft lens star
+  vec3 c=mix(vec3(.3,.9,1.),vec3(1.),smoothstep(.1,1.2,hot))*(hot+streak)*e*b;
+  gl_FragColor=vec4(c*uAlpha,0.);
+}`;

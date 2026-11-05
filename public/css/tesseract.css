@@ -78,17 +78,58 @@ a.tx-btn:hover { border-color: #a9eeff; box-shadow: 0 0 30px rgba(85,230,255,.4)
 
 /* ---------- four dimensions ---------- */
 #dimensions { height: 460vh; }
+@keyframes tx-trace { to { transform: translate(-50%, -50%) rotate(360deg); } }
 .tx-dim-stage { position: absolute; inset: 0; transition: opacity .6s ease; }
 .tx-dim-stage.leaving { opacity: 0; }
-.tx-cards { position: absolute; left: var(--gutter); right: var(--gutter); top: calc(var(--title-top) + var(--h2) + 1.9rem + clamp(1.5rem, 3.6vh, 2.5rem)); bottom: clamp(2.25rem, 6vh, 3.5rem); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); gap: 1.25rem 21vw; }
-.tx-card { --dx: 0; --dy: 0; display: flex; padding: .375rem; background-color: rgba(51,67,87,.42); border: 1px solid rgba(100,191,211,.5); border-radius: 1rem; opacity: 0; transform: translate(var(--dx), var(--dy)) scale(.72); transition: opacity .55s ease, transform 1s var(--ease), box-shadow .4s ease, border-color .4s ease; }
+
+.tx-cards { position: absolute; left: var(--gutter); right: var(--gutter); top: calc(var(--title-top) + var(--h2) + 1.9rem + clamp(2rem, 5vh, 3rem)); bottom: clamp(2.25rem, 6vh, 3.5rem); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); gap: .75rem; }
+.tx-card { --dx: 0; --dy: 0; --mx: 50%; --my: 0%; position: relative; display: flex; padding: .375rem; background-color: rgba(51,67,87,.42); border: 1px solid rgba(100,191,211,.32); border-radius: 1rem; opacity: 0; translate: var(--dx) var(--dy); scale: .72; transition: opacity .55s ease, translate 1.1s var(--ease), scale 1.1s var(--ease), box-shadow .5s ease, border-color .4s ease; }
 .tx-card.c0 { --dx: 40%; --dy: 34%; --c: #8fe6ff; } .tx-card.c1 { --dx: -40%; --dy: 34%; --c: #ffb07c; } .tx-card.c2 { --dx: 40%; --dy: -34%; --c: #6ff0c0; } .tx-card.c3 { --dx: -40%; --dy: -34%; --c: #b4bcff; }
-.tx-card.seen { opacity: 1; transform: none; }
-.tx-card.on, .tx-card:hover { border-color: var(--c); }
-.tx-card-inner { position: relative; display: flex; align-items: flex-end; width: 100%; padding: min(clamp(1.1rem, 1.6vw, 1.5rem), 2.2vh) clamp(1.1rem, 1.6vw, 1.5rem); overflow: hidden; border-radius: .7rem; }
-.tx-card-inner img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.tx-card-inner::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(14,24,38,0) 12%, rgba(14,24,38,.86) 60%, rgba(14,24,38,.97) 100%); }
-.tx-card-text { position: relative; z-index: 1; width: 100%; }
+.tx-card.seen { opacity: 1; translate: 0 0; scale: 1; }
+.tx-card.on, .tx-card.hot { box-shadow: 0 22px 70px -28px var(--c); }
+/* a point of light travels the card's edge: the painted layer only rotates, the mask keeps it to the border */
+.tx-edge { position: absolute; inset: -1px; padding: 1px; overflow: hidden; border-radius: inherit; pointer-events: none; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); opacity: 0; transition: opacity .5s ease; }
+.tx-edge b { position: absolute; left: 50%; top: 50%; width: 150%; aspect-ratio: 1; border-radius: 50%; background: conic-gradient(transparent 0 66%, var(--c) 88%, #fff 91%, transparent 94%); transform: translate(-50%, -50%); will-change: transform; animation: tx-trace 7s linear infinite paused; }
+.tx-card.c1 .tx-edge b { animation-delay: -1.75s; } .tx-card.c2 .tx-edge b { animation-delay: -3.5s; } .tx-card.c3 .tx-edge b { animation-delay: -5.25s; }
+.tx-dim-stage.live .tx-edge b { animation-play-state: running; }
+.tx-card.seen .tx-edge { opacity: .4; }
+.tx-card.on .tx-edge, .tx-card.hot .tx-edge { opacity: 1; }
+.tx-card-inner { position: relative; display: flex; align-items: flex-end; width: 100%; padding: min(clamp(1.1rem, 1.6vw, 1.5rem), 2.2vh) clamp(1.1rem, 1.6vw, 1.5rem); overflow: hidden; border-radius: .7rem; box-shadow: inset 0 1px 0 rgba(255,255,255,.1); transition: opacity .4s ease; }
+.tx-cards.has-hot .tx-card:not(.hot) .tx-card-inner { opacity: .72; }
+.tx-card-inner img { position: absolute; inset: -14px; width: calc(100% + 28px); height: calc(100% + 28px); max-width: none; object-fit: cover; scale: 1.14; transition: scale 1.8s var(--ease); }
+.tx-card.seen .tx-card-inner img { scale: 1; }
+/* the art stays vivid up top and melts through real frosted glass behind the words */
+.tx-card-inner::after { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, rgba(12,21,33,0) 22%, rgba(12,21,33,.76) 56%, rgba(12,21,33,.93) 100%); }
+.tx-card-inner img.tx-art-blur { -webkit-mask-image: linear-gradient(180deg, transparent 22%, #000 54%); mask-image: linear-gradient(180deg, transparent 22%, #000 54%); }
+/* the light that follows the cursor */
+.tx-card-inner::before { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none; background: radial-gradient(420px circle at var(--mx) var(--my), rgba(255,255,255,.16), transparent 70%); opacity: 0; transition: opacity .4s ease; }
+.tx-card.hot .tx-card-inner::before { opacity: 1; }
+.tx-card-text { position: relative; z-index: 3; width: 100%; }
+/* the card's own outline, the light tracing it, and the cube's light falling on the art */
+.tx-frame { display: none; position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.tx-frame .bg { fill: rgba(51,67,87,.42); stroke: rgba(100,191,211,.34); stroke-width: 1; vector-effect: non-scaling-stroke; transition: stroke .4s ease; }
+.tx-frame .tr { fill: none; stroke: var(--c); stroke-width: 1.5; stroke-linecap: round; stroke-dasharray: .1 1.02; opacity: 0; transition: opacity .5s ease; animation: tx-frame 8s linear infinite paused; }
+.tx-card.c1 .tr { animation-delay: -2s; } .tx-card.c2 .tr { animation-delay: -4s; } .tx-card.c3 .tr { animation-delay: -6s; }
+@keyframes tx-frame { from { stroke-dashoffset: 1.12; } to { stroke-dashoffset: 0; } }
+.tx-dim-stage.live .tx-frame .tr { animation-play-state: running; }
+.tx-card.seen .tx-frame .tr { opacity: .55; }
+.tx-card.on .tx-frame .tr, .tx-card.hot .tx-frame .tr { opacity: 1; }
+.tx-card.on .tx-frame .bg, .tx-card.hot .tx-frame .bg { stroke: var(--c); }
+.tx-spill { display: none; position: absolute; inset: 0; z-index: 1; pointer-events: none; mix-blend-mode: screen; opacity: 0; transition: opacity .8s ease; }
+.c0 .tx-spill { background: radial-gradient(70% 90% at 100% 100%, var(--c), transparent 72%); } .c1 .tx-spill { background: radial-gradient(70% 90% at 0 100%, var(--c), transparent 72%); }
+.c2 .tx-spill { background: radial-gradient(70% 90% at 100% 0, var(--c), transparent 72%); } .c3 .tx-spill { background: radial-gradient(70% 90% at 0 0, var(--c), transparent 72%); }
+.tx-card.seen .tx-spill { opacity: .22; }
+.tx-card.on .tx-spill, .tx-card.hot .tx-spill { opacity: .5; }
+@media (min-width: 992px) {
+  .tx-card { border: 0; background: none; }
+  .tx-card.on, .tx-card.hot { box-shadow: none; }
+  .tx-frame, .tx-spill { display: block; }
+  .tx-edge { display: none; }
+  .tx-card.c1 .tx-card-text, .tx-card.c3 .tx-card-text { margin-left: auto; }
+}
+.tx-card-n, .tx .tx-card h3, .tx .tx-card p { opacity: 0; translate: 0 14px; transition: opacity .7s ease, translate 1s var(--ease); }
+.tx-card.seen .tx-card-n, .tx .tx-card.seen h3, .tx .tx-card.seen p { opacity: 1; translate: 0 0; }
+.tx-card.seen .tx-card-n { transition-delay: .18s; } .tx .tx-card.seen h3 { transition-delay: .26s; } .tx .tx-card.seen p { transition-delay: .36s; }
 .tx-card-n { display: block; margin-bottom: .3rem; font-family: Rajdhani, Arial, sans-serif; font-size: 1rem; font-weight: 600; line-height: 1; color: var(--c); }
 .tx .tx-card h3 { font-size: var(--h3); line-height: 1.05; font-weight: 600; }
 .tx .tx-card p { margin-top: .4rem; font-size: var(--body); line-height: 1.42; font-weight: 300; }
@@ -139,7 +180,7 @@ a.tx-btn:hover { border-color: #a9eeff; box-shadow: 0 0 30px rgba(85,230,255,.4)
 .tx-person li span { font-weight: 300; color: rgba(246,246,245,.58); text-align: right; }
 
 /* ---------- cohort 2: one central card under the sealed coin ---------- */
-#apply { height: 100vh; height: 100svh; min-height: 640px; display: flex; align-items: flex-end; justify-content: center; padding: 0 1.5rem clamp(4.5rem, 13vh, 7.5rem); }
+#apply { height: 100vh; height: 100svh; min-height: 640px; display: flex; align-items: flex-end; justify-content: center; padding: 0 1.5rem clamp(6.5rem, 20vh, 11rem); }
 .tx-apply-card { display: flex; flex-direction: column; align-items: center; width: min(34rem, 100%); padding: clamp(1.75rem, 3.6vh, 2.5rem) clamp(1.5rem, 3vw, 3rem); text-align: center; background-color: rgba(14,24,38,.72); -webkit-backdrop-filter: blur(18px) saturate(120%); backdrop-filter: blur(18px) saturate(120%); border: 1px solid rgba(100,191,211,.5); border-radius: 1rem; }
 .tx-status { display: inline-flex; align-items: center; gap: .55rem; margin-bottom: .85rem; font-family: Rajdhani, Arial, sans-serif; font-size: 1rem; line-height: 1; font-weight: 600; color: #ffb07c; }
 .tx-status i { width: 6px; height: 6px; border-radius: 50%; background: #ffb07c; }
@@ -161,19 +202,21 @@ a.tx-btn:hover { border-color: #a9eeff; box-shadow: 0 0 30px rgba(85,230,255,.4)
   .tx-mission-inner h2 { margin-bottom: 1rem; }
   .tx-mission-inner .tx-lede { font-size: 1.02rem; }
   .tx-cards { display: block; top: auto; bottom: 1.5rem; height: 42vh; }
-  .tx-card { position: absolute; inset: 0; transform: translateY(24px); }
-  .tx-card.seen { opacity: 0; transform: translateY(-16px); }
-  .tx-card.seen.on { opacity: 1; transform: none; }
+  .tx-card { position: absolute; inset: 0; translate: 0 24px; scale: 1; }
+  .tx-card.seen { opacity: 0; translate: 0 -16px; }
+  .tx-card.seen.on { opacity: 1; translate: 0 0; }
   #track { height: 1000vh; }
   #tx-hud { bottom: 1.5rem; }
   .tx-seg span { display: none; }
   .tx-seg.on span { display: block; }
   .tx-team-grid { display: flex; flex-direction: column; gap: 1rem; }
   .tx-person { display: block; padding: 1.5rem; }
-  #apply { min-height: 100svh; padding-bottom: 3.5rem; }
+  #apply { min-height: 100svh; padding-bottom: 6rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .tx-ready .rv, .tx-line > span { opacity: 1; transform: none; transition: none; }
   .tx-hero-copy .tx-lede, .tx-hero-cta { animation: none; }
   .tx-scroll-cue::after { animation: none; }
+  .tx-edge b, .tx-frame .tr { animation: none !important; }
+  .tx-card-inner img { scale: 1; transition: none; }
 }

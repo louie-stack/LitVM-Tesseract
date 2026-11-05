@@ -78,9 +78,9 @@ precision highp float;
 varying vec2 vUv;
 uniform sampler2D tPaintA,tDepthA,tPaintB,tDepthB,tLat,tMask;
 uniform float uPaintA,uPaintB,uLat,uGrad,uVault,uTime,uAspect,uAspA,uAspB,uDolly,uVaultBeams,uMaskOn,uMaskFull,uLatGain,uSplit,uScrollA,uHeroDesk;
-uniform vec2 uOff,uFocus,uGlowPos,uBeam,uPosA,uPosB;
-uniform float uGlowAmt,uBeamAmt,uBeamW;
-uniform vec3 uGlowCol,uVaultCol;
+uniform vec2 uOff,uFocus,uGlowPos,uBeam,uBeamTop,uPosA,uPosB;
+uniform float uGlowAmt,uBeamAmt,uBeamW,uNode;
+uniform vec3 uGlowCol,uVaultCol,uDimGlow;
 uniform float uBeamsX[5];
 uniform float uBeamHot[5];
 vec2 coverUv(vec2 s,float ai,vec2 pos){
@@ -120,10 +120,20 @@ void main(){
     c=mix(vec3(.0035,.007,.016),c,.05+.95*shade*shade);
     vec2 g=(s-uGlowPos)*vec2(uAspect,1.);float r2=dot(g,g);
     c+=uGlowCol*uGlowAmt*exp(-r2*9.)*.28*(.55+d*.8);
-    float dx=(sa.x-uBeam.x)*uAspect;float h=clamp((sa.y-uBeam.y)/(1.-uBeam.y),0.,1.);
-    float flick=.88+.12*sin(uTime*2.3+sa.y*14.)*sin(uTime*1.1);
-    float core=exp(-dx*dx/(uBeamW*uBeamW*.0009))+.14*exp(-dx*dx/(uBeamW*uBeamW*.02));
-    c+=vec3(.25,.95,1.)*core*uBeamAmt*flick*smoothstep(0.,.06,h)*(1.-h*.25);
+    // the beam: one straight line of light from the pool to the object's centre, nothing past it
+    vec2 bA=vec2(uAspect,1.),b0=(uBeam+vec2(0.,uScrollA))*bA,ax=uBeamTop*bA-b0,bp=s*bA-b0;
+    float bL=max(length(ax),.001),al=dot(bp,ax)/bL,h=al/bL,dx=(bp.x*ax.y-bp.y*ax.x)/bL;
+    float wb=uBeamW,flow=.9+.1*sin(al*26.-uTime*2.2)*sin(al*7.-uTime*.7);
+    float line=exp(-dx*dx/(wb*wb*mix(.0000075,.0000042,clamp(h,0.,1.))))*1.2   // hot thread, tightening as it rises
+      +exp(-dx*dx/(wb*wb*.00012))*.34                              // its bloom
+      +exp(-dx*dx/(wb*wb*.0042))*.075;                             // the haze around it
+    float ends=smoothstep(0.,.05,h)*(1.-smoothstep(.992,1.,h));
+    vec3 beamC=mix(vec3(.2,.9,1.),vec3(.85,1.,1.),exp(-dx*dx/(wb*wb*.0000075)));
+    // on phones the copy sits under the object, so the beam fades out above it
+    c+=beamC*line*ends*flow*uBeamAmt*3.3*(.72+.28*h)*(uHeroDesk>.5?1.:smoothstep(.43,.58,s.y));
+    // where it lands: light gathers at the centre and fills the object
+    vec2 nd=(s-uBeamTop)*bA;float nr=dot(nd,nd),breath=.92+.08*sin(uTime*1.15);
+    c+=vec3(.26,.88,1.)*uNode*breath*(exp(-nr/.0024)*.22+exp(-nr/.019)*.1);
     col+=c*wA;
   }
   if(uPaintB>.002){
@@ -132,6 +142,7 @@ void main(){
     c+=uGlowCol*uGlowAmt*(exp(-r2*5.)*.3+exp(-r2*30.)*.4)*(.55+d*.8);
     col+=c*uPaintB;
   }
+  { vec2 gd=(s-uGlowPos)*vec2(uAspect,1.); col+=uDimGlow*exp(-dot(gd,gd)*16.); }
   if(uVault>.002){
     vec2 p=(s-.5)*vec2(uAspect,1.)*2.;float hz=-.2;
     float fl=smoothstep(hz+.012,hz-.012,p.y);

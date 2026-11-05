@@ -8,18 +8,26 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import Lenis from 'lenis';
-import { FS_VERT, BG_FRAG, GLASS_VERT, GLASS_FRAG, DUST_VERT, DUST_FRAG, FINAL_FRAG } from './shaders.js';
+import { FS_VERT, BG_FRAG, GLASS_VERT, GLASS_FRAG, DUST_VERT, DUST_FRAG, FINAL_FRAG, LOGO_VERT, LOGO_FRAG, HALO_VERT, HALO_FRAG, NODE_FRAG } from './shaders.js';
 import { TUNNEL_FRAG, WORLD_FRAG, STREAK_VERT, STREAK_FRAG } from './tunnel.js';
 import { Hyper } from './hyper.js';
 
 /* ---------- content ---------- */
-const COHORT = [1, 2, 3, 4, 5].map((n) => ({ name: `Project 0${n}`, note: 'To be announced' }));
+// glow: the light the mark gives off inside its crystal. No logo yet = an empty, sealed crystal.
+const COHORT = [
+  { name: 'Lester Labs', logo: 'lester', glow: '#9a6bff', size: 1.04 },
+  { name: 'Omega', logo: 'omega', glow: '#fff1d6', size: 0.88 },
+  { name: 'Midas Hand', logo: 'midas', glow: '#ff9a3d', size: 1.1 },
+  { name: 'Lithium Lend', logo: 'lithium', glow: '#4f8cff', size: 0.76 },
+  { name: 'Fifth project', note: 'To be announced' },
+];
 const STAGES = ['Awareness', 'Integration', 'Consideration', 'Conversion', 'Nurture'];
 const STOPS = [['New Cohort', 0], ['Intake', 0], ['Account Exec', 1], ['First Call', 1], ['Identify Goals', 1], ['Roadmap', 1], ['Intro Tesseract Network', 1], ['Audits', 2], ['Pitching', 2], ['Prompt Classes', 2], ['Second Call', 3], ['Amplification', 3], ['Campaign', 3], ['Transported', 4]];
 const ART = {
-  hero: { aspect: 1696 / 1184, x: 0.773, y: 0.67, beamV: 0.19 },
+  hero: { aspect: 1696 / 1184, x: 0.773, y: 0.6, beamV: 0.172 },
   net: { aspect: 3096 / 2160, x: 0.51, y: 0.73 },
 };
+const LOGO_SCALE = 1.75;
 const GATE = 8, ZEND = GATE * (STOPS.length + 1), ZK = 1.968;
 
 /* ---------- helpers ---------- */
@@ -39,10 +47,37 @@ const stageColor = (z) => {
   const i = Math.min(Math.floor(s), 3); let t = s - i; if (i === 3) t = sstep(0.72, 1, t); return c[i].map((v, k) => lerp(v, c[i + 1][k], t));
 };
 
+/* ---------- polygons with rounded corners: the four cards and the hexagon they make around the cube ---------- */
+function insetPoly(P, d) {
+  let area = 0; P.forEach((a, i) => { const b = P[(i + 1) % P.length]; area += a[0] * b[1] - b[0] * a[1]; }); const sgn = area > 0 ? 1 : -1;
+  return P.map((v, i) => {
+    const a = P[(i + P.length - 1) % P.length], b = P[(i + 1) % P.length], l1 = Math.hypot(v[0] - a[0], v[1] - a[1]), l2 = Math.hypot(b[0] - v[0], b[1] - v[1]);
+    const n1 = [-(v[1] - a[1]) / l1 * sgn, (v[0] - a[0]) / l1 * sgn], n2 = [-(b[1] - v[1]) / l2 * sgn, (b[0] - v[0]) / l2 * sgn], k = 1 + n1[0] * n2[0] + n1[1] * n2[1];
+    return [v[0] + d * (n1[0] + n2[0]) / k, v[1] + d * (n1[1] + n2[1]) / k];
+  });
+}
+function roundPoly(P, R, dx = 0, dy = 0) {
+  let out = '';
+  P.forEach((v, i) => {
+    const a = P[(i + P.length - 1) % P.length], b = P[(i + 1) % P.length], l1 = Math.hypot(a[0] - v[0], a[1] - v[1]), l2 = Math.hypot(b[0] - v[0], b[1] - v[1]), r = Math.min(R[i], l1 / 2, l2 / 2);
+    const p = [v[0] + (a[0] - v[0]) / l1 * r + dx, v[1] + (a[1] - v[1]) / l1 * r + dy], q = [v[0] + (b[0] - v[0]) / l2 * r + dx, v[1] + (b[1] - v[1]) / l2 * r + dy];
+    out += `${i ? 'L' : 'M'}${p[0].toFixed(2)} ${p[1].toFixed(2)}Q${(v[0] + dx).toFixed(2)} ${(v[1] + dy).toFixed(2)} ${q[0].toFixed(2)} ${q[1].toFixed(2)}`;
+  });
+  return out + 'Z';
+}
+
 /* ---------- DOM built from data ---------- */
 function buildDom() {
   $('#tx-progress').innerHTML = STAGES.map((n, i) => `<div class="tx-seg s${i}" style="flex:${STOPS.filter((x) => x[1] === i).length}"><i><b></b></i><span>${n}</span></div>`).join('');
-  $('#tx-chambers').innerHTML = COHORT.map((c) => `<article class="tx-chamber"><h3>${c.name}</h3><p>${c.note}</p></article>`).join('');
+  // the frosted glass behind the words: a pre-blurred copy of the art, faded in (work/blurcards.py). backdrop-filter loses its fade once a card tilts in 3D, and a live filter costs frames
+  $$('.tx-card-inner > img').forEach((im) => { const c = im.cloneNode(); c.src = im.getAttribute('src').replace(/\.\w+$/, '-blur.webp'); c.classList.add('tx-art-blur'); c.setAttribute('aria-hidden', 'true'); im.after(c); });
+  $$('.tx-card-inner > img').forEach((im) => { im.loading = 'eager'; im.decoding = 'sync'; if (im.decode) im.decode().catch(() => {}); });
+  // each card's own outline (it has a hexagon bitten out of it) and the cube's light falling on its art
+  $$('.tx-card').forEach((c) => c.insertAdjacentHTML('afterbegin', '<svg class="tx-frame" aria-hidden="true"><path class="bg"/><path class="tr" pathLength="1"/></svg>'));
+  $$('.tx-card-inner').forEach((c) => c.insertAdjacentHTML('beforeend', '<i class="tx-spill" aria-hidden="true"></i>'));
+  // a point of light travelling each card's edge: one painted layer that only rotates, so it costs almost nothing
+  $$('.tx-card').forEach((c) => c.insertAdjacentHTML('beforeend', '<i class="tx-edge" aria-hidden="true"><b></b></i>'));
+  $('#tx-chambers').innerHTML = COHORT.map((c) => `<article class="tx-chamber"><h3>${c.name}</h3>${c.note ? `<p>${c.note}</p>` : ''}</article>`).join('');
   $$('[data-words]').forEach((el) => { let out = ''; el.childNodes.forEach((n) => { const st = n.nodeType === 1; n.textContent.split(/(\s+)/).forEach((w) => { out += w.trim() ? `<span class="tx-w${st ? ' is-strong' : ''}">${w}</span>` : w; }); }); el.innerHTML = out; });
   $$('[data-rise]').forEach((el) => { el.innerHTML = el.innerHTML.split(/<br\s*\/?>/i).map((l) => `<span class="tx-line"><span>${l}</span></span>`).join(''); });
 }
@@ -78,7 +113,7 @@ function boot() {
   const wU = {
     tPaintA: { value: T_.heroC }, tDepthA: { value: T_.heroD }, tPaintB: { value: T_.netC }, tDepthB: { value: T_.netD }, tLat: { value: latRT.texture }, tMask: { value: maskRT.texture }, uSplit: { value: 0 }, uScrollA: { value: 0 }, uHeroDesk: { value: 1 }, uMaskOn: { value: 0 }, uMaskFull: { value: 0 },
     uPaintA: { value: 1 }, uPaintB: { value: 0 }, uLat: { value: 0 }, uGrad: { value: 0 }, uVault: { value: 0 }, uTime: shared.uTime, uAspect: { value: 1 }, uAspA: { value: ART.hero.aspect }, uAspB: { value: ART.net.aspect },
-    uDolly: { value: 0 }, uLatGain: { value: 1 }, uVaultBeams: { value: 1 }, uOff: { value: new THREE.Vector2() }, uFocus: { value: new THREE.Vector2(0.5, 0.5) }, uGlowPos: { value: new THREE.Vector2(0.5, 0.5) }, uBeam: { value: new THREE.Vector2(0.77, 0.19) }, uPosA: { value: new THREE.Vector2(0.5, 0.5) }, uPosB: { value: new THREE.Vector2(0.5, 0.5) },
+    uDolly: { value: 0 }, uLatGain: { value: 1 }, uVaultBeams: { value: 1 }, uOff: { value: new THREE.Vector2() }, uFocus: { value: new THREE.Vector2(0.5, 0.5) }, uGlowPos: { value: new THREE.Vector2(0.5, 0.5) }, uBeam: { value: new THREE.Vector2(0.77, 0.19) }, uBeamTop: { value: new THREE.Vector2(0.77, 0.6) }, uNode: { value: 0 }, uDimGlow: { value: new THREE.Color(0, 0, 0) }, uPosA: { value: new THREE.Vector2(0.5, 0.5) }, uPosB: { value: new THREE.Vector2(0.5, 0.5) },
     uGlowAmt: { value: 0.5 }, uBeamAmt: { value: 0.5 }, uBeamW: { value: 1 }, uGlowCol: { value: new THREE.Color('#57d8ff') }, uVaultCol: { value: new THREE.Color('#6fdcff') }, uBeamsX: { value: [0, 0, 0, 0, 0] }, uBeamHot: { value: [0, 0, 0, 0, 0] },
   };
   const worldScene = new THREE.Scene(); worldScene.add(fsQuad(WORLD_FRAG, wU));
@@ -89,6 +124,9 @@ function boot() {
   const D = 10, halfH = Math.tan(THREE.MathUtils.degToRad(17.5)) * D;
   const bgQuad = fsQuad(BG_FRAG, { tBg: shared.tBg }); bgQuad.renderOrder = -10; scene.add(bgQuad);
   const hero = new Hyper(shared); hero.group.position.z = -D; scene.add(hero.group);
+  const nodeU = { uAlpha: { value: 0 }, uTime: shared.uTime };
+  const node = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShaderMaterial({ vertexShader: HALO_VERT, fragmentShader: NODE_FRAG, uniforms: nodeU, transparent: true, depthTest: false, depthWrite: false, blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor }));
+  node.frustumCulled = false; node.renderOrder = 6; node.visible = false; scene.add(node);
   const maskScene = new THREE.Scene(), maskMesh = new THREE.Mesh(hero.panes.geometry, new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, toneMapped: false }));
   maskMesh.frustumCulled = false; maskMesh.matrixAutoUpdate = false; maskScene.add(maskMesh);
 
@@ -118,13 +156,34 @@ function boot() {
   /* five sealed tesseracts and their reflections */
   const FLIP = new THREE.Matrix4(), SCALEY = new THREE.Matrix4().makeScale(1, -1, 1);
   const minis = COHORT.map((c, i) => {
-    const h = new Hyper(shared); h.ang = [0.5 + i * 0.16, 0.2 + i * 0.1, 0.35 + i * 0.06]; h.tumble = 0.2; h.thick = 0.042; h.boost = 0; h.group.position.z = -D; h.group.visible = false; scene.add(h.group);
+    const h = new Hyper(shared); h.ang = [0.5 + i * 0.16, 0.2 + i * 0.1, 0.35 + i * 0.06]; h.tumble = 0.2; h.thick = 0.03; h.boost = 0; h.group.position.z = -D; h.group.visible = false; scene.add(h.group);
     const rm = glassMat({ ...h.u, uAlpha: { value: 0.2 }, uFade: { value: 0.5 } }); rm.depthWrite = false;
     const mirror = new THREE.Group(); mirror.matrixAutoUpdate = false;
     const mr = new THREE.InstancedMesh(h.rods.geometry, rm, 32), mg = new THREE.InstancedMesh(h.gems.geometry, rm, 16);
     mr.instanceMatrix = h.rods.instanceMatrix; mg.instanceMatrix = h.gems.instanceMatrix; mr.frustumCulled = mg.frustumCulled = false; mr.renderOrder = mg.renderOrder = 2;
     mirror.add(mr, mg); mirror.visible = false; scene.add(mirror); h.mirror = mirror; h.mirrorU = rm.uniforms;
     return h;
+  });
+
+  /* the marks sealed inside: stacked slices with real thickness, drawn into the background pass so the glass in front refracts them */
+  const logoScene = new THREE.Scene(), SLICES = COARSE ? 14 : 26, sliceGeo = new THREE.InstancedBufferGeometry(), plane = new THREE.PlaneGeometry(1, 1);
+  sliceGeo.index = plane.index; sliceGeo.setAttribute('position', plane.getAttribute('position')); sliceGeo.setAttribute('uv', plane.getAttribute('uv'));
+  sliceGeo.setAttribute('aLayer', new THREE.InstancedBufferAttribute(new Float32Array(SLICES).map((_, i) => i / (SLICES - 1)), 1)); sliceGeo.instanceCount = SLICES;
+  const premul = { transparent: true, depthTest: false, depthWrite: false, side: THREE.DoubleSide, blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor };
+  const logoTex = (u) => { const t = loader.load(u); t.colorSpace = THREE.SRGBColorSpace; t.premultiplyAlpha = true; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter; t.anisotropy = 8; return t; };
+  minis.forEach((h, i) => {
+    const c = COHORT[i]; if (!c.logo) return;
+    const base = { tLogo: { value: logoTex(`assets/logos/${c.logo}.png`) }, uTime: shared.uTime, uThick: { value: 0.07 }, uFlip: { value: 0 }, uSpread: { value: 1 }, uTurn: { value: 0 }, uHot: { value: 0 }, uGlow: { value: new THREE.Color(c.glow) }, uRes: shared.uRes };
+    const stackMat = (fade, depthTest = false) => new THREE.ShaderMaterial({ vertexShader: LOGO_VERT, fragmentShader: LOGO_FRAG, uniforms: { ...base, uAlpha: { value: 0 }, uFadeY: { value: fade }, uFaceOnly: { value: 0 } }, ...premul, depthTest });
+    const haloMat = (fade) => new THREE.ShaderMaterial({ vertexShader: HALO_VERT, fragmentShader: HALO_FRAG, uniforms: { uGlow: base.uGlow, uHot: base.uHot, uRes: shared.uRes, uAlpha: { value: 0 }, uFadeY: { value: fade } }, transparent: true, depthTest: false, depthWrite: false, blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor });
+    const stack = new THREE.Mesh(sliceGeo, stackMat(0)), halo = new THREE.Mesh(plane, haloMat(0)), mirrorStack = new THREE.Mesh(sliceGeo, stackMat(0.5)), mirrorHalo = new THREE.Mesh(plane, haloMat(0.5));
+    for (const m of [stack, halo, mirrorStack, mirrorHalo]) m.frustumCulled = false;
+    mirrorStack.matrixAutoUpdate = mirrorHalo.matrixAutoUpdate = false;
+    halo.renderOrder = mirrorHalo.renderOrder = 0; stack.renderOrder = mirrorStack.renderOrder = 1; logoScene.add(mirrorHalo, mirrorStack, halo, stack);
+    const front = new THREE.Mesh(sliceGeo, stackMat(0, true)); front.frustumCulled = false; front.matrixAutoUpdate = false; front.renderOrder = 4.5; front.visible = false; scene.add(front);
+    // the visible face once more over the near rods, so they read as a sheen across the mark rather than lines through it
+    const face = new THREE.Mesh(sliceGeo, stackMat(0)); face.material.uniforms.uFaceOnly.value = 1; face.frustumCulled = false; face.matrixAutoUpdate = false; face.renderOrder = 4.6; face.visible = false; scene.add(face);
+    h.logo = { stack, front, face, halo, mirrorStack, mirrorHalo, base, spin: 0 };
   });
 
   /* dust */
@@ -166,8 +225,23 @@ function boot() {
     wU.uBeam.value.set(bm[0], bm[1]); heroFocus = obj;
     const kn = cover(ART.net.aspect); let posN = 0.5; if (kn[0] < 1) posN = clamp(0.5 + (ART.net.x - 0.5) / (1 - kn[0]), 0, 1);
     const coin = toS(kn, posN, ART.net.x, ART.net.y, 0.2); netFocus = coin; T.posN = posN;
-    const coinX = coin[0] * 2 - 1, coinY = coin[1] * 2 - 1;
 
+    const hexR = (() => {
+      const wrap = $('.tx-cards'), list = $$('.tx-card'), texts = $$('.tx-card-text'), inners = $$('.tx-card-inner'), frames = $$('.tx-frame');
+      if (!desk) { inners.forEach((n) => { n.style.clipPath = ''; }); texts.forEach((n) => { n.style.width = ''; }); return 0; }
+      const w = list[0].offsetWidth, h = list[0].offsetHeight, g = (wrap.offsetWidth - w * 2) / 2, R = Math.min(wrap.offsetHeight * 0.345, w * 0.3), cx = w + g, cy = h + g, K = 0.866;
+      const ux = cx - K * R, uy = cy - 0.5 * R, tip = cy - R + g * 0.577, base = [[0, 0], [w, 0], [w, tip], [ux, uy], [ux, h], [0, h]], radii = [16, 16, 9, 12, 9, 16];
+      const pad = parseFloat(getComputedStyle(inners[0]).paddingLeft), textW = ux - pad - 6 - clamp(w * 0.03, 14, 28);
+      list.forEach((c, i) => {
+        const fx = (p) => [i % 2 ? w - p[0] : p[0], i > 1 ? h - p[1] : p[1]], P = base.map(fx);
+        const frame = frames[i], inset = insetPoly(P, 6); frame.setAttribute('viewBox', `0 0 ${w} ${h}`);
+        const d = roundPoly(P, radii); frame.children[0].setAttribute('d', d); frame.children[1].setAttribute('d', d);
+        inners[i].style.clipPath = `path("${roundPoly(inset, radii.map((r) => Math.max(r - 5, 4)), -6, -6)}")`;
+        texts[i].style.width = `${textW}px`;
+      });
+      return R;
+    })();
+    const cardPs = $$('.tx-card p'); cardPs.forEach((n) => { n.style.minHeight = ''; }); const cardPH = Math.max(...cardPs.map((n) => n.offsetHeight)); cardPs.forEach((n) => { n.style.minHeight = `${cardPH}px`; });
     const m = box(sec.mission), d = box(sec.dims), tr = box(sec.track), co = box(sec.cohort), te = box(sec.team), a = box(sec.apply);
     Object.assign(T, { m, d, tr, co, te, a });
     const mE = m.t + m.h - vh, dE = d.t + d.h - vh, trE = tr.t + tr.h - vh, coE = co.t + co.h - vh;
@@ -177,11 +251,10 @@ function boot() {
     const pinRect = (el) => { const e = el.getBoundingClientRect(), p = el.closest('.tx-pin').getBoundingClientRect(); return { t: e.top - p.top, b: e.bottom - p.top }; };
     const toNdcY = (py) => 1 - (py / vh) * 2;
     const titleB = pinRect($('.tx-dim-stage .tx-title')).b, cardR = pinRect($('.tx-cards'));
-    const dimObj = desk ? { x: 0, y: toNdcY((cardR.t + cardR.b) / 2), r: Math.min((cardR.b - cardR.t) * 0.3 / vh, 0.17) } : { x: 0, y: toNdcY((titleB + cardR.t) / 2), r: Math.min((cardR.t - titleB) * 0.4 / vh, 0.14) };
+    const dimObj = desk ? { x: 0, y: toNdcY((cardR.t + cardR.b) / 2), r: hexR * 0.7 / vh } : { x: 0, y: toNdcY((titleB + cardR.t) / 2), r: Math.min((cardR.t - titleB) * 0.4 / vh, 0.14) };
     const midObj = desk ? { x: 0.5, y: 0 } : { x: 0, y: 0.56 };
     const midR = desk ? 0.3 : 0.17;
     const headB = pinRect($('.tx-track-head')).b, entryCy = (headB + vh) / 2, entryR = Math.min((vh - headB) * 0.43 / vh, desk ? 0.34 : 0.24, (vw * 0.42) / (0.866 * vh));
-    const sealR = Math.min(0.1, (ART.net.coin || 0.1));
 
     const base = { paintA: 1, paintB: 0, grad: 0, lat: 0, vault: 0, dolly: 0, x: heroX, y: heroY, r: 0.21, alpha: 1, settle: 0, hexOnly: 0, sealT: 0.05, spin: 1, energy: 1.35, solid: 0, latZ: 1, white: 0, warp: 0, bloom: 0.1, vig: 0.28, tone: 0, glow: 0.16, beam: 0.3, dust: 0, mini: 0, thick: 0.04, streak: 0, ref: 0.06 };
     const raw = [
@@ -208,9 +281,9 @@ function boot() {
       [coE, { mini: 1 }],
       [te.t - vh * 0.5, { mini: 0 }],
       [te.t + vh * 0.05, { vault: 0, grad: 1, tone: 0, vig: 0.15 }],
-      // the sealed mark sits inside the Litecoin coin
-      [a.t - vh * 0.75, { paintB: 0, x: coinX, y: coinY, r: sealR, settle: 1, spin: 0, alpha: 0, solid: 1, sealT: 0.05 }],
-      [a.t - vh * 0.05, { grad: 0, paintB: 1, alpha: 1, glow: 0.05, bloom: 0.1, vig: 0.22, dolly: 0 }],
+      // the Litecoin coin painting, on its own
+      [a.t - vh * 0.75, { paintB: 0 }],
+      [a.t - vh * 0.05, { grad: 0, paintB: 1, bloom: 0.1, vig: 0.22, dolly: 0 }],
     ];
     let prev = base;
     keys = raw.map(([at, v]) => { prev = { ...prev, ...v, at }; return prev; }).sort((p, q) => p.at - q.at);
@@ -238,7 +311,14 @@ function boot() {
 
   /* ---------- per-frame DOM ---------- */
   const missionInner = $('.tx-mission-inner'), words = $$('.tx-w'), cards = $$('.tx-card'), dimStage = $('.tx-dim-stage'), segs = $$('.tx-seg'), stopName = $('#tx-stop'), stopNum = $('#tx-count'), chambers = $$('.tx-chamber'), hud = $('#tx-hud'), heroCopy = $('.tx-hero-copy'), trackHead = $('.tx-track-head');
-  let hoverCard = -1; cards.forEach((c, i) => { c.addEventListener('pointerenter', () => { if (desk) hoverCard = i; }); c.addEventListener('pointerleave', () => { if (hoverCard === i) hoverCard = -1; }); });
+  const cardsWrap = $('.tx-cards'), arts = cards.map((c) => $$('.tx-card-inner > img', c));
+  const tilt = cards.map(() => ({ x: 0, y: 0, tx: 0, ty: 0, on: false }));
+  let hoverCard = -1;
+  cards.forEach((c, i) => {
+    c.addEventListener('pointerenter', (e) => { if (desk && e.pointerType === 'mouse') { hoverCard = i; tilt[i].on = true; cardsWrap.classList.add('has-hot'); c.classList.add('hot'); } });
+    c.addEventListener('pointermove', (e) => { if (!tilt[i].on) return; const r = c.getBoundingClientRect(), px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height; tilt[i].tx = px * 2 - 1; tilt[i].ty = py * 2 - 1; c.style.setProperty('--mx', `${(px * 100).toFixed(1)}%`); c.style.setProperty('--my', `${(py * 100).toFixed(1)}%`); });
+    c.addEventListener('pointerleave', () => { if (hoverCard === i) { hoverCard = -1; cardsWrap.classList.remove('has-hot'); } tilt[i].on = false; tilt[i].tx = tilt[i].ty = 0; c.classList.remove('hot'); });
+  });
   const bootT = performance.now(); let lastM = 0, active = -2, stageNow = -1, last = performance.now(), lastS = scrollY, hiNow = [0, 0, 0, 0], frames = 0, acc = 0, seen = false, speed = 0;
   const v3 = new THREE.Vector3(), dummy = new THREE.Object3D(), up = new THREE.Vector3(0, 1, 0), tv = new THREE.Vector3(), dirV = new THREE.Vector3(), rq = new THREE.Quaternion();
   const toWorld = (nx, ny, t) => t.set(nx * aspect * halfH, ny * halfH, -D);
@@ -319,7 +399,7 @@ function boot() {
     for (let i = 0; i < 4; i++) hiNow[i] += (tgt[i] - hiNow[i]) * hk;
     hero.hi = hiNow;
     if (act !== active) { active = act; cards.forEach((c, i) => { c.classList.toggle('seen', i <= act); c.classList.toggle('on', i === act); }); }
-    dimStage.classList.toggle('leaving', pD > 0.96);
+    dimStage.classList.toggle('leaving', pD > 0.96); dimStage.classList.toggle('live', inD);
 
     if (objOn) {
       toWorld(S.x, S.y, hero.group.position);
@@ -328,6 +408,27 @@ function boot() {
       hero.group.scale.setScalar(scaleOf(S.r)); hero.update();
       v3.copy(hero.group.position).project(camera); wU.uGlowPos.value.set(v3.x * 0.5 + 0.5, v3.y * 0.5 + 0.5);
     }
+    /* Four dimensions: the cube's light on the world behind it */
+    { const g = wU.uDimGlow.value, on = inD && objOn && desk ? 1 - sstep(0.9, 0.98, pD) : 0; g.setRGB(0, 0, 0); [[0.56, 0.9, 1], [1, 0.69, 0.49], [0.44, 0.94, 0.75], [0.71, 0.74, 1]].forEach((c, i) => { g.r += c[0] * hiNow[i] * on * 0.014; g.g += c[1] * hiNow[i] * on * 0.014; g.b += c[2] * hiNow[i] * on * 0.014; }); }
+    /* Four dimensions: the cursor tilt */
+    if (inD && objOn && desk) {
+        const tk = 1 - Math.pow(0.0008, dt);
+        tilt.forEach((t, i) => {
+          if (RM) return;
+          t.x += (t.tx - t.x) * tk; t.y += (t.ty - t.y) * tk;
+          if (Math.abs(t.x) + Math.abs(t.y) < 0.002 && !t.on) { if (t.set) { cards[i].style.transform = ''; arts[i].forEach((a) => { a.style.translate = ''; }); t.set = false; } return; }
+          cards[i].style.transform = `perspective(1200px) rotateX(${(-t.y * 2.4).toFixed(2)}deg) rotateY(${(t.x * 3.2).toFixed(2)}deg)`;
+          arts[i].forEach((a) => { a.style.translate = `${(-t.x * 10).toFixed(1)}px ${(-t.y * 7).toFixed(1)}px`; }); t.set = true;
+        });
+    }
+
+    /* the beam climbs out of the pool on load, reaches the centre of the object and lights it; scrolling away lets it go */
+    const bootS = RM ? 9 : (now - bootT) / 1000, leave = 1 - sstep(0, vh * 0.4, y), climb = sstep(0.15, 1.5, bootS), lit = sstep(1.25, 2.1, bootS) * leave;
+    const bx = wU.uBeam.value.x, by = wU.uBeam.value.y + wU.uScrollA.value;
+    wU.uBeamTop.value.set(lerp(bx, wU.uGlowPos.value.x, climb), lerp(by, wU.uGlowPos.value.y, climb));
+    wU.uBeamAmt.value = S.beam * leave; wU.uNode.value = lit;
+    node.visible = lit > 0.01 && objOn;
+    if (node.visible) { node.position.copy(hero.group.position); node.scale.setScalar(scaleOf(S.r) * 3.4); nodeU.uAlpha.value = lit; }
     wU.uLatGain.value = lerp(2.2, 1, sstep(T.tp(0.045), T.tp(0.085), y));
     wU.uMaskOn.value = y < T.tp(0.107) ? 1 : 0; wU.uMaskFull.value = sstep(1.1, 1.9, S.r);
     if (objOn) { hero.group.updateMatrix(); maskMesh.matrix.copy(hero.group.matrix); maskMesh.matrixWorldNeedsUpdate = true; }
@@ -357,7 +458,7 @@ function boot() {
       let hover = -1;
       minis.forEach((h, i) => {
         const floorNdc = -0.2, rise = desk ? sstep(T.co.t - vh * 0.25 + i * vh * 0.05, T.co.t + vh * 0.1 + i * vh * 0.05, y) : 1;
-        const ndx = (i - 2) * step + pan, ndy = (desk ? 0.1 : 0.12) - (1 - rise) * 0.14, r = desk ? Math.min(0.105, step * aspect * 0.145) : 0.115;
+        const ndx = (i - 2) * step + pan, ndy = (desk ? 0.1 : 0.12) - (1 - rise) * 0.14, r = desk ? Math.min(0.15, step * aspect * 0.19) : 0.14;
         toWorld(ndx, ndy, h.group.position); h.group.position.y += Math.sin(time * 0.6 + i * 0.5) * 0.018;
         h.group.scale.setScalar(scaleOf(r)); h.group.visible = true; h.mirror.visible = true;
         if (mouse.moved && Math.abs(mouse.sx - ndx) < step * 0.48 && desk && mouse.sy < 0.8) hover = i;
@@ -368,11 +469,28 @@ function boot() {
         const floor = floorNdc * halfH;
         h.group.updateMatrix(); FLIP.makeTranslation(0, floor * 2, 0).multiply(SCALEY); h.mirror.matrix.copy(FLIP).multiply(h.group.matrix); h.mirror.matrixWorldNeedsUpdate = true;
         wU.uBeamsX.value[i] = ndx * aspect; wU.uBeamHot.value[i] = h.boost;
-        const c = chambers[i]; tv.copy(h.group.position); tv.y = -halfH * (desk ? 0.7 : 0.66); tv.project(camera);
+        if (h.logo) {
+          const L = h.logo, size = h.group.scale.x * LOGO_SCALE * COHORT[i].size, hot = h.boost;
+          // it hangs facing you and sways; hovering sends it round once
+          if (hot > 0.5 && L.spin === 0) L.spin = 0.0001;
+          if (L.spin > 0) { L.spin += dt * 0.9; if (L.spin >= 1) L.spin = hot > 0.5 ? 1 : 0; }
+          const yaw = (RM ? 0 : Math.sin(time * 0.42 + i * 0.9) * 0.42) * (1 - hot * 0.75) + sstep(0, 1, Math.min(L.spin, 1)) * Math.PI * 2;
+          const form = sstep(0.1, 0.95, rise); // the slices condense out of depth as it arrives
+          L.stack.position.copy(h.group.position); L.stack.rotation.set(RM ? 0 : Math.sin(time * 0.31 + i) * 0.1, yaw, 0); L.stack.scale.setScalar(size); L.stack.updateMatrix();
+          L.base.uFlip.value = Math.cos(yaw) < 0 ? 1 : 0; L.base.uSpread.value = 1 - form; L.base.uTurn.value = yaw; L.base.uHot.value = hot;
+          L.stack.material.uniforms.uAlpha.value = S.mini * form;
+          L.front.matrix.copy(L.stack.matrix); L.front.matrixWorldNeedsUpdate = true; L.front.visible = true; L.front.material.uniforms.uAlpha.value = S.mini * form;
+          L.face.matrix.copy(L.stack.matrix); L.face.matrixWorldNeedsUpdate = true; L.face.visible = true; L.face.material.uniforms.uAlpha.value = S.mini * form * 0.72;
+          L.halo.position.copy(h.group.position); L.halo.scale.setScalar(h.group.scale.x * LOGO_SCALE * 2.6); L.halo.updateMatrix(); L.halo.material.uniforms.uAlpha.value = S.mini * form;
+          FLIP.makeTranslation(0, floorNdc * halfH * 2, 0).multiply(SCALEY);
+          L.mirrorStack.matrix.copy(FLIP).multiply(L.stack.matrix); L.mirrorStack.matrixWorldNeedsUpdate = true; L.mirrorStack.material.uniforms.uAlpha.value = S.mini * form * 0.2;
+          L.mirrorHalo.matrix.copy(FLIP).multiply(L.halo.matrix); L.mirrorHalo.matrixWorldNeedsUpdate = true; L.mirrorHalo.material.uniforms.uAlpha.value = S.mini * form * 0.2;
+        }
+        const c = chambers[i]; tv.copy(h.group.position); tv.y = -halfH * (desk ? 0.76 : 0.72); tv.project(camera);
         c.style.transform = `translate3d(${((tv.x * 0.5 + 0.5) * vw).toFixed(1)}px,${((-tv.y * 0.5 + 0.5) * vh).toFixed(1)}px,0) translateX(-50%)`;
         c.style.opacity = (ma * (desk ? 1 : clamp(1.4 - Math.abs(ndx) * 1.6, 0, 1))).toFixed(3); c.classList.toggle('hot', h.boost > 0.5);
       });
-    } else minis.forEach((h) => { if (h.group.visible) { h.group.visible = false; h.mirror.visible = false; } });
+    } else minis.forEach((h) => { if (h.group.visible) { h.group.visible = false; h.mirror.visible = false; if (h.logo) h.logo.front.visible = h.logo.face.visible = false; } });
 
     /* post */
     const speedWarp = inTun && entered ? clamp(speed * 0.0008, 0, 0.14) : 0;
@@ -382,6 +500,7 @@ function boot() {
     /* render */
     if (S.lat > 0.002) { renderer.setRenderTarget(latRT); renderer.render(latScene, fsCam); if (wU.uMaskOn.value > 0.5) { renderer.setRenderTarget(maskRT); renderer.render(maskScene, camera); } }
     renderer.setRenderTarget(bgRT); renderer.render(worldScene, fsCam);
+    if (S.mini > 0.01) { renderer.autoClear = false; renderer.render(logoScene, camera); renderer.autoClear = true; }
     renderer.setRenderTarget(null); composer.render(dt);
 
     frames++; acc += dt;
